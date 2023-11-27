@@ -149,14 +149,24 @@ app.post('/changeName/:userID/:newName', async (req, res) => {
   res.send('Testing from server 1');
 });
 
+// Open log_sync.txt
+const fs = require('fs');
+const path = require('path');
+
+const logSyncPath = path.join(__dirname, 'log_sync.txt');
+
 const produceMessage = async (query) => {
   await producer.connect();
   
   console.log('Producing message:', query);
+
   await producer.send({
     topic: 'data-sync-topic',
     messages: [{ value: JSON.stringify(query) }],
   });
+
+  // Log the query in log_sync.txt, produce message and time
+  const log = `PRODUCER: ${query} ${Date.now()}`;
 
   console.log('Message sent successfully');
   await producer.disconnect();

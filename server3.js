@@ -44,6 +44,12 @@ async function connectToMySQL() {
 // Connect to the database
 connectToMySQL();
 
+// Open file log_sync.txt
+const fs = require('fs');
+const path = require('path');
+
+const logSyncPath = path.join(__dirname, 'log_sync.txt');
+
 const runConsumer = async () => {
   console.log('Running social_media_rc2 consumer');
   await consumer.connect();
@@ -57,6 +63,9 @@ const runConsumer = async () => {
       // Perform database operation in db1
       const [rows] = await mysqlConnection.query(query);
       console.log('Inserted into social_media_rc2:', rows);
+
+      // Append to log_sync.txt
+      fs.appendFileSync(logSyncPath, `CONSUMER 2: ${query} ${Date.now()}\n`);
     },
   });
 };
