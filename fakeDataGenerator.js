@@ -2,14 +2,21 @@ const mysql = require('mysql2/promise');
 const { MongoClient } = require('mongodb');
 const neo4j = require('neo4j-driver');
 const mongoose = require('mongoose');
-const { faker } = require('@faker-js/faker');
 const bcrypt = require('bcrypt');
+const debug = require('debug');
+// Suppress deprecation warnings for faker
+debug.disable('@faker-js/faker:address');
+debug.disable('@faker-js/faker:random.word');
+
+const { faker } = require('@faker-js/faker');
 
 const numUsers = process.argv[2] ? parseInt(process.argv[2], 10) : 1; // Number of users from command line argument
 const limitForFriends = 50; // Limit for number of friends per user
 const maxFriendsLimit = limitForFriends<=numUsers/2 ? limitForFriends : numUsers/2; // Maximum number of friends per user
 
 var mysqlConnection;
+var mysqlConnection2;
+var mysqlConnection3;
 var mongoClient;
 var neo4jDriver;
 var neo4jSession;
@@ -17,6 +24,8 @@ var neo4jSession;
 // Function to clear all databases
 async function clearAllDatabases() {
     await mysqlConnection.execute('DROP TABLE IF EXISTS Users');
+    await mysqlConnection2.execute('DROP TABLE IF EXISTS Users');
+    await mysqlConnection3.execute('DROP TABLE IF EXISTS Users');
     console.log('MySQL cleared');
     
     // await neo4jSession.run('MATCH (n) DETACH DELETE n');
@@ -28,7 +37,7 @@ async function clearAllDatabases() {
 
 async function connectMySql() {
     // Create the connection
-    const mysqlConnection = await mysql.createConnection({
+    mysqlConnection = await mysql.createConnection({
         host: 'localhost',
         port: 3306,
         user: 'root',
@@ -36,14 +45,41 @@ async function connectMySql() {
         database: 'social_media'
     });
 
+    // Create the connection
+    mysqlConnection2 = await mysql.createConnection({
+        host: 'localhost',
+        port: 3306,
+        user: 'root',
+        password: '',
+        database: 'social_media_rc1'
+    });
+
+    // Create the connection
+    mysqlConnection3 = await mysql.createConnection({
+        host: 'localhost',
+        port: 3306,
+        user: 'root',
+        password: '',
+        database: 'social_media_rc2'
+    });
+
     // Connect to the database
     await mysqlConnection.connect();
 
     // Log the connection status
-    console.log(`MySQL connected`);
+    console.log(`MySQL social_media connected`);
 
-    // Return the connection
-    return mysqlConnection;
+    // Connect to the database
+    await mysqlConnection2.connect();
+
+    // Log the connection status
+    console.log(`MySQL social_media_rc1 connected`);
+
+    // Connect to the database
+    await mysqlConnection3.connect();
+
+    // Log the connection status
+    console.log(`MySQL social_media_rc2 connected`);
 }
 
 async function connectMongo() {
@@ -74,6 +110,32 @@ async function createUserSchema() {
             )
         `);
 
+        // Create Users table
+        await mysqlConnection2.execute(`
+            CREATE TABLE IF NOT EXISTS Users (
+                userID INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                mongodbUserID VARCHAR(255),
+                UNIQUE KEY unique_username (username),
+                UNIQUE KEY unique_email (email)
+            )
+        `);
+
+        // Create Users table
+        await mysqlConnection3.execute(`
+            CREATE TABLE IF NOT EXISTS Users (
+                userID INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                mongodbUserID VARCHAR(255),
+                UNIQUE KEY unique_username (username),
+                UNIQUE KEY unique_email (email)
+            )
+        `);
+
         console.log('MySQL User schema created successfully');
 
     } catch (error) {
@@ -83,7 +145,7 @@ async function createUserSchema() {
 
 async function main() {
     try {
-        mysqlConnection = await connectMySql();
+        await connectMySql();
         mongoClient = await connectMongo();
         neo4jDriver = neo4j.driver('neo4j+s://8b927876.databases.neo4j.io', neo4j.auth.basic('neo4j', 'jgxRGMWS6loV6QSBW_56afaXESc9uTm5-iJbzVxIlxE'));
         neo4jSession = neo4jDriver.session();
@@ -126,7 +188,7 @@ async function main() {
 
                 // Check if the friend relationship already exists in Neo4j
                 const result = await neo4jSession.run(
-                    `MATCH (u1:User_Node {userID: ${userID}})-[r:FRIEND_WITH]->(u2:User_Node {userID: ${friendUserID}}) ` +
+                    `MATCH (u1:User_Node {userID: ${userID}})-[r:Follows]->(u2:User_Node {userID: ${friendUserID}}) ` +
                     `RETURN r`
                 );
 
@@ -154,6 +216,18 @@ async function createUserInMySQL(username, email, password) {
     const hashedPassword = await hashPassword(password); // Hash the password
 
     const [rows, fields] = await mysqlConnection.execute(
+        'INSERT INTO Users (username, email, password) VALUES (?, ?, ?)',
+        [username, email, hashedPassword]
+    );
+
+    // Execute the query for social_media_rc1
+    const [rows2, fields2] = await mysqlConnection2.execute(
+        'INSERT INTO Users (username, email, password) VALUES (?, ?, ?)',
+        [username, email, hashedPassword]
+    );
+
+    // Execute the query for social_media_rc2
+    const [rows3, fields3] = await mysqlConnection3.execute(
         'INSERT INTO Users (username, email, password) VALUES (?, ?, ?)',
         [username, email, hashedPassword]
     );
@@ -205,14 +279,14 @@ async function insertUserNodeIntoNeo4j(userID, username) {
 async function createRandomFriendRelations(userID, friendUserID) {
     await neo4jSession.run(
         'MATCH (u1:User_Node {userID: $userID}), (u2:User_Node {userID: $friendUserID}) ' +
-        'CREATE (u1)-[:FRIEND_WITH]->(u2)',
+        'CREATE (u1)-[:Follows]->(u2)',
         { userID: userID, friendUserID: friendUserID }
     );
 
     // Create bidirectional relationship
     await neo4jSession.run(
         'MATCH (u1:User_Node {userID: $userID}), (u2:User_Node {userID: $friendUserID}) ' +
-        'CREATE (u2)-[:FRIEND_WITH]->(u1)',
+        'CREATE (u1)-[:Follows]->(u2)',
         { userID: friendUserID, friendUserID: userID }
     );
 }
