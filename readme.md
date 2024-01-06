@@ -26,7 +26,7 @@ Our architectural blueprint takes shape through the judicious incorporation of R
 
 High availability stands as a cornerstone of our architectural design. Through the deployment of database replicas, we
 
-![](Aspose.Words.2bc93d3c-5c67-4ca2-8221-88e044b74535.001.jpeg)
+![Fig. 1. Social Media Advanced Database Architecture](images/architecture.png)
 
 Fig. 1. Social Media Advanced Database Architecture
 
@@ -38,17 +38,15 @@ Data Migration is seamlessly woven into our architectural tapestry. This feature
 
 As we ascend the summit of cloud architecture, we fortify the framework with an impregnable layer of security. Database Encryption stands as the sentry guarding data, both at rest and in transit, while Auditing and Logging mechanisms tirelessly keep watch over the system's activities. This emphasis on security, compliance, and troubleshooting is essential, ensuring that data remains protected.
 
-Adding another layer of sophistication, we introduce Kafka, a robust messaging system. In our ecosystem, the master database acts as the producer of queries, pushing them to the message queue. The read replicas, or slaves, fetch these queries from the queue, updating themselves in a synchronized fashion. This Kafka-driven architecture ensures seamless communication and synchronization between the master and its
+Adding another layer of sophistication, we introduce Kafka, a robust messaging system. In our ecosystem, the master database acts as the producer of queries, pushing them to the message queue. The read replicas, or slaves, fetch these queries from the queue, updating themselves in a synchronized fashion. This Kafka-driven architecture ensures seamless communication and synchronization between the master and its replicas.
 
-![](Aspose.Words.2bc93d3c-5c67-4ca2-8221-88e044b74535.002.png)
+![Fig. 2. Neo4j Database](images/neo4j.png)
 
 Fig. 2. Neo4j Database
 
-![](Aspose.Words.2bc93d3c-5c67-4ca2-8221-88e044b74535.003.png)
+![Fig. 3. mySQL Database](images/mysql.png)
 
 Fig. 3. mySQL Database
-
-replicas.
 
 In our commitment to real-time responsiveness, we implement an auto-expiry feature for the cache. This deliberate choice is made to ensure that cached data remains fresh and reflective of real-time changes, aligning with our pursuit of optimal user experiences. Additionally, we incorporate an SMS alert system using the Twilio API to notify administrators in case of any failure or alarming situation, such as when query times exceed a predefined threshold. This proactive alerting mechanism enhances the system's robustness and aids in a swift response to potential issues.
 
@@ -60,11 +58,11 @@ This section unveils the tangible outcomes derived from the implementation of th
 
 Generating Dummy Data and Populating Databases: Figure 2, 3, and 4 showcase the successful generation of dummy data
 
-![](Aspose.Words.2bc93d3c-5c67-4ca2-8221-88e044b74535.004.png)
+![Fig. 4. MongoDB Database](images/mongodb.png)
 
 Fig. 4. MongoDB Database
 
-![](Aspose.Words.2bc93d3c-5c67-4ca2-8221-88e044b74535.005.png)
+![Fig. 5. SMS Alert](images/sms.png)
 
 Fig. 5. SMS Alert
 
@@ -74,15 +72,15 @@ SMS Alert for Server Concerns: Figure 5 displays screenshots of SMS alerts gener
 
 Reading from Redis Cache: Figure 6 captures a screenshot from the console, highlighting the retrieval of data from the Redis cache. This feature significantly enhances response
 
-![](Aspose.Words.2bc93d3c-5c67-4ca2-8221-88e044b74535.006.png)
+![Fig. 6. Redis](images/redis.png)
 
 Fig. 6. Redis
 
-![](Aspose.Words.2bc93d3c-5c67-4ca2-8221-88e044b74535.007.png)
+![Fig. 7. Kafka Database Synchronization](images/kafka.png)
 
 Fig. 7. Kafka Database Synchronization
 
-![](Aspose.Words.2bc93d3c-5c67-4ca2-8221-88e044b74535.008.png)
+![Fig. 8. Load Balancing](images/loadbalancing.png)
 
 Fig. 8. Load Balancing
 
@@ -94,11 +92,11 @@ Load Balancing and Heartbeat Signal: Figure 8 demonstrates the load balancing me
 
 Data Migration Scripts: Figures 9 and 10 depict the successful execution of data migration scripts, converting databases
 
-![](Aspose.Words.2bc93d3c-5c67-4ca2-8221-88e044b74535.009.png)
+![Fig. 9. mySQL to mongodb](images/mongomigrated.png)
 
 Fig. 9. mySQL to mongodb
 
-![](Aspose.Words.2bc93d3c-5c67-4ca2-8221-88e044b74535.010.png)
+![Fig. 10. MongoDB to mySQL](images/sqlmigrated.png)
 
 Fig. 10. MongoDB to mySQL
 
@@ -120,7 +118,7 @@ Scalability, while a strength of our architecture, also introduces challenges. A
 
 Addressing security concerns emerged as a crucial aspect, particularly in ensuring the secure transmission and storage
 
-of user data. The ever-evolving landscape of security threats demanded continuous vigilance, with regular updates and adherence to best practices being essential for safeguarding user data effectively.
+of user data. The ever-evolving landscape of security threats demanded continuous vigilance, with regular updates and adherence to best practices being essential for safeguarding user data effectively.
 
 Furthermore, the reliance on external services, such as Twilio for SMS alerts, introduces dependencies that could impact the system's reliability. External factors, such as service outages or changes in API specifications, may affect the responsiveness of certain features, highlighting the need for contingency plans and continuous monitoring.
 
